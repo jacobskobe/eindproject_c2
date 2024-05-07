@@ -29,12 +29,25 @@ struct Item {
 void path_maker(char *path, char *file_name);
 int check_extension(char *file_name);
 int check_file_exist(char *file_path);
+void push_to_list(struct item_list **head, struct Item *object_to_push);
 
 int main(int argc, char* argv[]){
+
+    // make first linked list object
+    struct item_list *head = NULL;
+    head = (struct item_list *) malloc(sizeof(struct item_list));
+    head->item_dnd = (struct Item*) malloc(sizeof(struct Item));
+    head->next_item = NULL;
+
+    // counter to check for the first item to add to list
+    int counter_list = 0;
 
     char *path_ptr;
     char path_str[100] = "C:\\Users\\kobej\\Desktop\\skorro23_24\\C2\\Eindproject_KobeJacobs\\json_files\\";
     path_ptr = path_str;
+
+    // Array for data from parsed file
+    char *data_from_file[6];
     
 
 
@@ -58,6 +71,13 @@ int main(int argc, char* argv[]){
                 continue;
 
                 // Make new node for 
+                if (counter_list == 0){
+                    // create first node for linked list
+                    continue;
+                }
+                else {
+                    continue;
+                }
             }
             
         }
@@ -109,4 +129,32 @@ int check_file_exist(char *file_path){
     }
 }
 
+void push_to_list(struct item_list **head, struct Item *object_to_push){
+    // Create new object
+    struct item_list *new_item;
+    // Allocate memory for new linked list object
+    new_item = (struct item_list *) malloc(sizeof(struct item_list));
+    // Allocate memory for new Item
+    new_item->item_dnd = (struct Item *) malloc(sizeof(struct Item));
+    new_item->next_item = NULL;
+
+    if (*head == NULL){
+        *head = new_item;
+    }
+    else {
+        struct item_list *current = *head;
+        while(current->next_item != NULL){
+            current = current->next_item;
+        }
+        current->next_item = new_item;
+    }
+
+}
+
+
+void fill_first_item(struct Item *item_to_fill, FILE *file){
+
+
+
+}
 
