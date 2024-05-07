@@ -5,6 +5,12 @@
 #include <sys/stat.h>
 
 
+// Linked list struct
+struct item_list {
+    struct Item *item_dnd;
+    struct item_list *next_item;
+};
+
 // dnd object struct
 struct Item {
 
@@ -40,9 +46,20 @@ int main(int argc, char* argv[]){
             // make path from cmd argument and path_str to check for file to parse
             path_maker(path_ptr, argv[i]);
             printf("%s\n", path_ptr);
+
             // Check if file exists
-            check_file_exist(path_ptr);
-            printf("%d\n", check_file_exist(path_ptr));
+            if (check_file_exist(path_ptr)){
+                // File does not exists
+                
+            }
+            else {
+                // File exists
+                printf("%d\n", check_file_exist(path_ptr));
+                continue;
+
+                // Make new node for 
+            }
+            
         }
         else {
             continue;
