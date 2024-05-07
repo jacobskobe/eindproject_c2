@@ -20,8 +20,10 @@ struct Item {
 
 
 void path_maker(char *path, char *file_name);
+int check_extension(char *file_name);
 
 int main(int argc, char* argv[]){
+
     char *path_ptr;
     char path_str[50] = "../json_files/";
     path_ptr = path_str;
@@ -31,20 +33,22 @@ int main(int argc, char* argv[]){
     // Put all given file data into structs to add to linked list
     for (int i = 1; i < argc; i++){        
         
-    
-        path_maker(path_ptr, argv[i]);
-        
         // check if argument is a json file
-        // Make path from file name
+        if (check_extension(argv[i]) == 0) {
+            // make path from cmd argument and path_str to check for file to parse
+            path_maker(path_ptr, argv[i]);
+            printf("%s\n", path_ptr);
+        }
+        else {
+            continue;
+        }
         // pass to parse function if argument is json file
 
         // else skip
-        printf("%s\n", path_ptr);
+
+        // sets value of path_str back to original to check for new file
         strcpy(path_ptr, "../json_files/");
     }
-
-
-    
 
     free(path_ptr);
 
@@ -52,6 +56,20 @@ int main(int argc, char* argv[]){
 
 void path_maker(char *path, char *file_name){
     strcat(path, file_name);
+}
+
+int check_extension(char *file_name){
+
+    char *return_extension;
+    return_extension = strrchr(file_name, '.');
+
+    if (strcmp(return_extension, ".json") == 0) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+
 }
 
 
