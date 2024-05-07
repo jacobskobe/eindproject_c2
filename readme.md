@@ -5,3 +5,5 @@ FIXED:
 - Check if cmd argument has '.json' file extension
 - Make path from cmd argument if file has the correct extension
 - Check if given file exists in dedicated folder
+- Make linked list structure
+- Make function to add new object to linked list (push)
