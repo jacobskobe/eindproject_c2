@@ -11,7 +11,7 @@ FIXED:
 - Printing linked list items
 
 
-Points to gain: <br />
+<h2>Points to gain: </h2><br />
 -> Gebruiken van juiste structuren: <br />
 -> De gegevens worden juist bewaard in de juiste members van de structuren: <br />
 -> Gebruik van pointers is steeds van het juiste type: <br />
