@@ -7,3 +7,5 @@ FIXED:
 - Check if given file exists in dedicated folder
 - Make linked list structure
 - Make function to add new object to linked list (push)
+- File parsing from json file to Item struct
+- Printing linked list items
