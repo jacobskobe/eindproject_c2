@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "cJSON.h"
+#include <conio.h>
 
 // Linked list struct
 struct item_list {
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     struct item_list *head = NULL;
     int counter_list = 0;
-    double max_weight = -1; // default value for max weight
+    double max_weight = 0; // default value for max weight
     double total_weight = 0; // initialize total weight being carried
 
     struct Money money = {0, 0, 0}; // Initialize money values to 0
@@ -288,36 +289,59 @@ void traverse_list(struct item_list **head, double max_weight, double *total_wei
     } while (temp != *head);
 
     do {
-        printf("Name: %s\n", current->item_dnd->name);
-        printf("Weight: %.2f\n", current->item_dnd->weight);
-        printf("Cost: %d %s\n", current->item_dnd->cost.cost, current->item_dnd->cost.cost_unit);
-        printf("Description: %s\n\n", current->item_dnd->description);
-
+        system("cls");
+        printf("\n\nName: %s\n\n\n", current->item_dnd->name);
+        printf("------------------------------------------\n");
         printf("Maximum Weight: %.2f\n", max_weight);
         printf("Total Weight Being Carried: %.2f\n", *total_weight);
         printf("Items in Inventory: %d\n", item_count);
         printf("Money: %d gc, %d sc, %d bc\n", money->gold_coins, money->silver_coins, money->bronze_coins);
+        printf("------------------------------------------\n");
 
-        printf("Press 'n' to go to the next item, 'c' to add to camp, or any other key to exit: ");
+        // Check if weight exceeds maximum allowed weight
+        if (max_weight != -1 && *total_weight > max_weight) {
+            printf("Total weight exceeds the maximum weight limit. You must move items to the camp.\n");
+        }
+
+        printf("Press 'i' to see item details, 'n' to go to the next item, 'c' to add to camp, or any other key to exit: ");
         scanf("%s", input);
         getchar();
         printf("\n");
 
+        if (input[0] == 'i') {
+            system("cls");
+            printf("###################\n");
+            printf("#\tINFO\t  #\n");
+            printf("###################\n\n");
+            printf("Name: %s\n", current->item_dnd->name);
+            printf("Weight: %.2f\n", current->item_dnd->weight);
+            printf("Cost: %d %s\n", current->item_dnd->cost.cost, current->item_dnd->cost.cost_unit);
+            printf("Description: %s\n\n", current->item_dnd->description);
+
+            printf("------------------------------------------\n");
+            printf("Maximum Weight: %.2f\n", max_weight);
+            printf("Total Weight Being Carried: %.2f\n", *total_weight);
+            printf("Items in Inventory: %d\n", item_count);
+            printf("Money: %d gc, %d sc, %d bc\n", money->gold_coins, money->silver_coins, money->bronze_coins);
+            printf("------------------------------------------\n");
+
+            printf("Press 'n' to go to the next item, 'c' to add to camp, or any other key to exit: ");
+            scanf("%s", input);
+            getchar();
+            printf("\n");
+        }
+
         if (input[0] == 'n') {
             current = current->next_item;
         } else if (input[0] == 'c') {
-            if (max_weight != -1 && (*total_weight + current->item_dnd->weight) > max_weight) {
-                printf("Cannot add item: Weight limit exceeded.\n");
-            } else {
-                struct item_list *next_item = current->next_item;
-                pop_and_write_to_file(head, current, total_weight);
-                item_count--;
-                if (*head == NULL) {
-                    printf("The list is empty.\n");
-                    return;
-                }
-                current = (current == *head) ? *head : next_item;
+            struct item_list *next_item = current->next_item;
+            pop_and_write_to_file(head, current, total_weight);
+            item_count--;
+            if (*head == NULL) {
+                printf("The list is empty.\n");
+                return;
             }
+            current = (current == *head) ? *head : next_item;
         } else {
             break;
         }
