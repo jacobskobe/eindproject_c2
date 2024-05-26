@@ -9,6 +9,7 @@ Welcome to my final project for C Programming 2.
 - Make function to add new object to linked list (push)
 - File parsing from json file to Item struct
 - Printing linked list items
+- Traverse list item per item
 
 
 <h2>Points to gain: </h2><br />
