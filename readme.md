@@ -27,6 +27,6 @@ Points to gain: <br />
 -> Het geheel werk volledig zonder crashen: <br />
 -> Wekelijkse nuttige commit op GitHub (min. 5): <br />
 -> Een mooie extra eens de rest werkt (zie de lijst hieronder): <br />
-    - correcte documentatie a.d.h.v. flowchart (zie miro) <br />
-    - getopt() gebruiken <br />
-    - url meegeven en inladen via netwerk-code <br />
+    &emsp;- correcte documentatie a.d.h.v. flowchart (zie miro) <br />
+    &emsp;- getopt() gebruiken <br />
+    &emsp;- url meegeven en inladen via netwerk-code <br />
