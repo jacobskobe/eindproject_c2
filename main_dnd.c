@@ -42,6 +42,10 @@ void pop_and_write_to_file(struct item_list **head, struct item_list *item_to_po
 void clear_camp_file();
 void parse_money(const char *money_str, struct Money *money);
 
+#include <stdbool.h> // Include for boolean datatype
+
+#include <stdbool.h> // Include for boolean datatype
+
 int main(int argc, char* argv[]) {
     clear_camp_file();
 
@@ -54,6 +58,9 @@ int main(int argc, char* argv[]) {
 
     char path_str[256] = "C:\\Users\\kobej\\Desktop\\skorro23_24\\C2\\Eindproject_KobeJacobs\\json_files\\";
     char *path_ptr = path_str;
+
+    bool expecting_quantity = false; // Flag to track if we're expecting a quantity
+    int quantity = 1; // Default quantity is 1
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-w") == 0) {
@@ -83,24 +90,33 @@ int main(int argc, char* argv[]) {
                 printf("Error: Insufficient values specified for -m flag.\n");
                 return 1;
             }
-        } else if (check_extension(argv[i]) == 0) {
-            path_maker(path_ptr, argv[i]);
+        } else if (expecting_quantity) {
+            quantity = atoi(argv[i]); // Set quantity
+            expecting_quantity = false; // Reset the flag
+        } else if (isdigit(argv[i][0])) {
+            expecting_quantity = true; // Set the flag if the first character is a digit
+        } else {
+            // Parse each argument as an item filename
+            for (int q = 0; q < quantity; q++) {
+                char filename[256];
+                sprintf(filename, "%s%s", path_str, argv[i]);
+                
+                if (check_extension(filename) == 0 && check_file_exist(filename) == 0) {
+                    struct Item *new_item = (struct Item *)malloc(sizeof(struct Item));
+                    fill_item_from_json(new_item, filename);
 
-            if (check_file_exist(path_ptr) == 0) {
-                struct Item *new_item = (struct Item *)malloc(sizeof(struct Item));
-                fill_item_from_json(new_item, path_ptr);
-
-                if (counter_list == 0) {
-                    head = (struct item_list *)malloc(sizeof(struct item_list));
-                    head->item_dnd = new_item;
-                    head->next_item = head;
-                    counter_list++;
-                } else {
-                    push_to_list(&head, new_item);
+                    if (counter_list == 0) {
+                        head = (struct item_list *)malloc(sizeof(struct item_list));
+                        head->item_dnd = new_item;
+                        head->next_item = head;
+                        counter_list++;
+                    } else {
+                        push_to_list(&head, new_item);
+                    }
+                    total_weight += new_item->weight;
                 }
-                total_weight += new_item->weight;
             }
-            strcpy(path_ptr, "C:\\Users\\kobej\\Desktop\\skorro23_24\\C2\\Eindproject_KobeJacobs\\json_files\\");
+            quantity = 1; // Reset quantity
         }
     }
 
@@ -121,6 +137,7 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
 
 
 
