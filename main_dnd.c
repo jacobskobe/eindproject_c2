@@ -296,11 +296,11 @@ void traverse_list(struct item_list **head, double max_weight, double *total_wei
         printf("Total Weight Being Carried: %.2f\n", *total_weight);
         printf("Items in Inventory: %d\n", item_count);
         printf("Money: %d gc, %d sc, %d bc\n", money->gold_coins, money->silver_coins, money->bronze_coins);
-        printf("------------------------------------------\n");
+        printf("------------------------------------------\n\n");
 
         // Check if weight exceeds maximum allowed weight
         if (max_weight != -1 && *total_weight > max_weight) {
-            printf("Total weight exceeds the maximum weight limit. You must move items to the camp.\n");
+            printf("Player is encumbered!!! You must move items to the camp.\n\n");
         }
 
         printf("Press 'i' to see item details, 'n' to go to the next item, 'c' to add to camp, or any other key to exit: ");
