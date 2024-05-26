@@ -14,6 +14,9 @@ Welcome to my final project for C Programming 2.
 - Added max weight view and weight calculator<br />
 - Added money flag<br />
 - Added money view<br />
+- Added layout to print statements<br />
+- Added info option for user<br />
+- Added max weight exceeded message<br />
 
 
 <h2>Points to gain: </h2><br />
