@@ -2,14 +2,14 @@ Welcome to my final project for C Programming 2.
 
 
 <h2>FIXED: </h2> 
-- Check if cmd argument has '.json' file extension
-- Make path from cmd argument if file has the correct extension
-- Check if given file exists in dedicated folder
-- Make linked list structure
-- Make function to add new object to linked list (push)
-- File parsing from json file to Item struct
-- Printing linked list items
-- Traverse list item per item
+- Check if cmd argument has '.json' file extension <br />
+- Make path from cmd argument if file has the correct extension <br />
+- Check if given file exists in dedicated folder <br />
+- Make linked list structure <br />
+- Make function to add new object to linked list (push) <br />
+- File parsing from json file to Item struct <br />
+- Printing linked list items <br />
+- Traverse list item per item <br />
 
 
 <h2>Points to gain: </h2><br />
