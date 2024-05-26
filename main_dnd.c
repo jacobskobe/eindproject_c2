@@ -14,7 +14,7 @@ struct item_list {
 // dnd object struct
 struct Item {
     char *name;
-    int weight;
+    double weight;  // Changed to double
     struct item_cost {
         int cost;
         char *cost_unit;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     struct item_list *current = head;
     while (current != NULL) {
         printf("Name: %s\n", current->item_dnd->name);
-        printf("Weight: %d\n", current->item_dnd->weight);
+        printf("Weight: %.2f\n", current->item_dnd->weight);  // Updated to print double
         printf("Cost: %d %s\n", current->item_dnd->cost.cost, current->item_dnd->cost.cost_unit);
         printf("Description: %s\n\n", current->item_dnd->description);
         struct item_list *temp = current;
@@ -167,9 +167,11 @@ cJSON *parse_json(const char *json_data) {
 void extract_item(const cJSON *json, struct Item *item) {
     const cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "name");
     const cJSON *weight = cJSON_GetObjectItemCaseSensitive(json, "weight");
-    const cJSON *quantity = cJSON_GetObjectItemCaseSensitive(json, "quantity");
-    const cJSON *cost_unit = cJSON_GetObjectItemCaseSensitive(json, "unit");
+    const cJSON *cost = cJSON_GetObjectItemCaseSensitive(json, "cost");
+    const cJSON *cost_unit = cJSON_GetObjectItemCaseSensitive(cost, "unit");
+    const cJSON *cost_quantity = cJSON_GetObjectItemCaseSensitive(cost, "quantity");
     const cJSON *description = cJSON_GetObjectItemCaseSensitive(json, "description");
+    const cJSON *desc_array = cJSON_GetObjectItemCaseSensitive(json, "desc");
 
     // Check and assign name
     if (cJSON_IsString(name) && (name->valuestring != NULL)) {
@@ -180,14 +182,14 @@ void extract_item(const cJSON *json, struct Item *item) {
 
     // Check and assign weight
     if (cJSON_IsNumber(weight)) {
-        item->weight = weight->valueint;
+        item->weight = weight->valuedouble;  // Changed to valuedouble
     } else {
-        item->weight = 0;  // Default value
+        item->weight = 0.0;  // Default value
     }
 
     // Check and assign cost
-    if (cJSON_IsNumber(quantity)) {
-        item->cost.cost = quantity->valueint;
+    if (cJSON_IsNumber(cost_quantity)) {
+        item->cost.cost = cost_quantity->valueint;
     } else {
         item->cost.cost = 0;  // Default value
     }
@@ -204,6 +206,24 @@ void extract_item(const cJSON *json, struct Item *item) {
         item->description = strdup(description->valuestring);
     } else {
         item->description = strdup("N/A");
+    }
+
+    // Handle desc array
+    if (cJSON_IsArray(desc_array)) {
+        size_t total_length = 0;
+        const cJSON *desc_item;
+        cJSON_ArrayForEach(desc_item, desc_array) {
+            if (cJSON_IsString(desc_item) && desc_item->valuestring != NULL) {
+                total_length += strlen(desc_item->valuestring) + 1;  // +1 for the newline character
+            }
+        }
+        item->description = (char *)realloc(item->description, strlen(item->description) + total_length + 1);
+        cJSON_ArrayForEach(desc_item, desc_array) {
+            if (cJSON_IsString(desc_item) && desc_item->valuestring != NULL) {
+                strcat(item->description, "\n");
+                strcat(item->description, desc_item->valuestring);
+            }
+        }
     }
 }
 
