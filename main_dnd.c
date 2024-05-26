@@ -22,6 +22,12 @@ struct Item {
     char *description;
 };
 
+struct Money {
+    int gold_coins;
+    int silver_coins;
+    int bronze_coins;
+};
+
 void path_maker(char *path, const char *file_name);
 int check_extension(const char *file_name);
 int check_file_exist(const char *file_path);
@@ -30,58 +36,75 @@ void fill_item_from_json(struct Item *item, const char *filename);
 char *read_file(const char *filename);
 cJSON *parse_json(const char *json_data);
 void extract_item(const cJSON *json, struct Item *item);
-void traverse_list(struct item_list *head);
+void traverse_list(struct item_list **head, double max_weight, double *total_weight, struct Money *money);
+void pop_and_write_to_file(struct item_list **head, struct item_list *item_to_pop, double *total_weight);
+void clear_camp_file();
+void parse_money(const char *money_str, struct Money *money);
 
 int main(int argc, char* argv[]) {
+    clear_camp_file();
 
-    // make first linked list object
     struct item_list *head = NULL;
-
-    // counter to check for the first item to add to list
     int counter_list = 0;
+    double max_weight = -1; // default value for max weight
+    double total_weight = 0; // initialize total weight being carried
+
+    struct Money money = {0, 0, 0}; // Initialize money values to 0
 
     char path_str[256] = "C:\\Users\\kobej\\Desktop\\skorro23_24\\C2\\Eindproject_KobeJacobs\\json_files\\";
     char *path_ptr = path_str;
 
-    // Put all given file data into structs to add to linked list
-    for (int i = 1; i < argc; i++) {        
-        // check if argument is a json file
-        if (check_extension(argv[i]) == 0) {
-            // make path from cmd argument and path_str to check for file to parse
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-w") == 0) {
+            if (i + 1 < argc) {
+                max_weight = atof(argv[i + 1]);
+                i++;
+            } else {
+                printf("Error: No value specified for -w flag.\n");
+                return 1;
+            }
+        } else if (strcmp(argv[i], "-m") == 0) {
+            // Read the next three arguments as coin values
+            if (i + 3 < argc) {
+                for (int j = 0; j < 3; j++) {
+                    if (strstr(argv[i + 1 + j], "gc")) {
+                        money.gold_coins = atoi(argv[i + 1 + j]);
+                    } else if (strstr(argv[i + 1 + j], "sc")) {
+                        money.silver_coins = atoi(argv[i + 1 + j]);
+                    } else if (strstr(argv[i + 1 + j], "bc")) {
+                        money.bronze_coins = atoi(argv[i + 1 + j]);
+                    } else {
+                        printf("Invalid coin type: %s\n", argv[i + 1 + j]);
+                    }
+                }
+                i += 3; // Move to the next flag
+            } else {
+                printf("Error: Insufficient values specified for -m flag.\n");
+                return 1;
+            }
+        } else if (check_extension(argv[i]) == 0) {
             path_maker(path_ptr, argv[i]);
 
-            // Check if file exists
             if (check_file_exist(path_ptr) == 0) {
-
-                // Allocate memory for new Item and fill it with data from JSON file
                 struct Item *new_item = (struct Item *)malloc(sizeof(struct Item));
                 fill_item_from_json(new_item, path_ptr);
-                
+
                 if (counter_list == 0) {
-                    // create first node for linked list
                     head = (struct item_list *)malloc(sizeof(struct item_list));
                     head->item_dnd = new_item;
-                    head->next_item = head;  // Circular link
+                    head->next_item = head;
                     counter_list++;
                 } else {
-                    // Make new object to add to the linked list (push)
                     push_to_list(&head, new_item);
                 }
-            } else {
-                // File does not exist
-                continue;
+                total_weight += new_item->weight;
             }
-        } else {
-            continue;
+            strcpy(path_ptr, "C:\\Users\\kobej\\Desktop\\skorro23_24\\C2\\Eindproject_KobeJacobs\\json_files\\");
         }
-        // sets value of path_str back to original to check for new file
-        strcpy(path_ptr, "C:\\Users\\kobej\\Desktop\\skorro23_24\\C2\\Eindproject_KobeJacobs\\json_files\\");
     }
 
-    // Traverse the list
-    traverse_list(head);
+    traverse_list(&head, max_weight, &total_weight, &money);
 
-    // Print and free the circular linked list
     if (head != NULL) {
         struct item_list *current = head;
         do {
@@ -97,6 +120,8 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+
 
 // Function to concatenate file name to path
 void path_maker(char *path, const char *file_name) {
@@ -204,15 +229,10 @@ void extract_item(const cJSON *json, struct Item *item) {
         item->cost.cost_unit = strdup("N/A");
     }
 
+    item->description = strdup("");
     // Check and assign description
-    if (cJSON_IsString(description) && (description->valuestring != NULL)) {
-        item->description = strdup(description->valuestring);
-    } else {
-        item->description = strdup("N/A");
-    }
-
-    // Handle desc array
     if (cJSON_IsArray(desc_array)) {
+        // Handle desc array
         size_t total_length = 0;
         const cJSON *desc_item;
         cJSON_ArrayForEach(desc_item, desc_array) {
@@ -227,6 +247,8 @@ void extract_item(const cJSON *json, struct Item *item) {
                 strcat(item->description, desc_item->valuestring);
             }
         }
+    } else {
+        item->description = strdup("N/A");
     }
 }
 
@@ -249,15 +271,21 @@ void fill_item_from_json(struct Item *item, const char *filename) {
     free(json_data);
 }
 
-// Function to traverse the circular linked list
-void traverse_list(struct item_list *head) {
-    if (head == NULL) {
+void traverse_list(struct item_list **head, double max_weight, double *total_weight, struct Money *money) {
+    if (*head == NULL) {
         printf("The list is empty.\n");
         return;
     }
 
-    struct item_list *current = head;
-    char input;
+    struct item_list *current = *head;
+    char input[10];
+    int item_count = 0;
+
+    struct item_list *temp = *head;
+    do {
+        item_count++;
+        temp = temp->next_item;
+    } while (temp != *head);
 
     do {
         printf("Name: %s\n", current->item_dnd->name);
@@ -265,16 +293,157 @@ void traverse_list(struct item_list *head) {
         printf("Cost: %d %s\n", current->item_dnd->cost.cost, current->item_dnd->cost.cost_unit);
         printf("Description: %s\n\n", current->item_dnd->description);
 
-        printf("Press 'n' to go to the next item, or any other key to exit: ");
-        input = getchar();
-        getchar(); // Consume the newline character
+        printf("Maximum Weight: %.2f\n", max_weight);
+        printf("Total Weight Being Carried: %.2f\n", *total_weight);
+        printf("Items in Inventory: %d\n", item_count);
+        printf("Money: %d gc, %d sc, %d bc\n", money->gold_coins, money->silver_coins, money->bronze_coins);
+
+        printf("Press 'n' to go to the next item, 'c' to add to camp, or any other key to exit: ");
+        scanf("%s", input);
+        getchar();
         printf("\n");
 
-        if (input == 'n') {
+        if (input[0] == 'n') {
             current = current->next_item;
+        } else if (input[0] == 'c') {
+            if (max_weight != -1 && (*total_weight + current->item_dnd->weight) > max_weight) {
+                printf("Cannot add item: Weight limit exceeded.\n");
+            } else {
+                struct item_list *next_item = current->next_item;
+                pop_and_write_to_file(head, current, total_weight);
+                item_count--;
+                if (*head == NULL) {
+                    printf("The list is empty.\n");
+                    return;
+                }
+                current = (current == *head) ? *head : next_item;
+            }
         } else {
             break;
         }
-
-    } while (current != head || input == 'n'); // Loop until we're back at the start and the user wants to exit
+    } while (current != *head || input[0] == 'n' || input[0] == 'c');
 }
+
+
+void pop_and_write_to_file(struct item_list **head, struct item_list *item_to_pop, double *total_weight) {
+    if (*head == NULL || item_to_pop == NULL) {
+        printf("Invalid operation.\n");
+        return;
+    }
+
+    struct item_list *current = *head;
+    struct item_list *previous = NULL;
+
+    // Find the item_to_pop in the list
+    while (current != item_to_pop && current->next_item != *head) {
+        previous = current;
+        current = current->next_item;
+    }
+
+    if (current != item_to_pop) {
+        printf("Item not found.\n");
+        return;
+    }
+
+    // Remove item_to_pop from the list
+    if (previous == NULL) {
+        // If item_to_pop is the head of the list
+        if (current->next_item == current) {
+            // If there is only one item in the list
+            *head = NULL;
+        } else {
+            *head = current->next_item; // Update head to the next item
+            struct item_list *temp = current->next_item;
+            while (temp->next_item != current) {
+                temp = temp->next_item;
+            }
+            temp->next_item = *head; // Make the last item point to the new head
+        }
+    } else {
+        // If item_to_pop is not the head of the list
+        previous->next_item = current->next_item; // Update the previous node's next pointer
+    }
+
+    // Update total weight being carried
+    *total_weight -= item_to_pop->item_dnd->weight;
+
+    // Write the item's contents to camp.txt
+    FILE *file = fopen("camp.txt", "a");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        free(item_to_pop->item_dnd->name);
+        free(item_to_pop->item_dnd->cost.cost_unit);
+        free(item_to_pop->item_dnd->description);
+        free(item_to_pop->item_dnd);
+        free(item_to_pop);
+        return;
+    }
+
+    fprintf(file, "Name: %s\n", item_to_pop->item_dnd->name);
+    fprintf(file, "Weight: %.2f\n", item_to_pop->item_dnd->weight);
+    fprintf(file, "Cost: %d %s\n", item_to_pop->item_dnd->cost.cost, item_to_pop->item_dnd->cost.cost_unit);
+    fprintf(file, "Description: %s\n\n", item_to_pop->item_dnd->description);
+
+    fclose(file);
+
+    // Free the memory used by the popped item
+    free(item_to_pop->item_dnd->name);
+    free(item_to_pop->item_dnd->cost.cost_unit);
+    free(item_to_pop->item_dnd->description);
+    free(item_to_pop->item_dnd);
+    free(item_to_pop);
+}
+
+
+void clear_camp_file() {
+    FILE *file = fopen("camp.txt", "w");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+    fclose(file);
+}
+
+void parse_money(const char *money_str, struct Money *money) {
+    money->gold_coins = 0;
+    money->silver_coins = 0;
+    money->bronze_coins = 0;
+
+    const char delimiters[] = " ,";
+    char *token;
+
+    printf("Input string: %s\n", money_str); // Print the input string for debugging
+
+    // Tokenize the input string
+    char *copy = strdup(money_str); // Make a copy since strtok modifies the original string
+    token = strtok(copy, delimiters);
+
+    // Parse each token
+    while (token != NULL) {
+        printf("Token: %s\n", token); // Print each token for debugging
+        int value;
+        char type[3];
+
+        // Parse value and type directly from token
+        if (sscanf(token, "%d%2s", &value, type) >= 1) {
+            printf("Value: %d, Type: %s\n", value, type); // Print parsed value and type for debugging
+            // Update corresponding coin type
+            if (strcmp(type, "gc") == 0) {
+                money->gold_coins += value;
+            } else if (strcmp(type, "sc") == 0) {
+                money->silver_coins += value;
+            } else if (strcmp(type, "bc") == 0) {
+                money->bronze_coins += value;
+            }
+        } else {
+            printf("Invalid token format: %s\n", token);
+        }
+
+        // Move to the next token
+        token = strtok(NULL, delimiters);
+    }
+
+    free(copy); // Free the memory allocated for the copy
+}
+
+
