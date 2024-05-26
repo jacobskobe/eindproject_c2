@@ -10,6 +10,10 @@ Welcome to my final project for C Programming 2.
 - File parsing from json file to Item struct <br />
 - Printing linked list items <br />
 - Traverse list item per item <br />
+- Added weight flag<br />
+- Added max weight view and weight calculator<br />
+- Added money flag<br />
+- Added money view<br />
 
 
 <h2>Points to gain: </h2><br />
